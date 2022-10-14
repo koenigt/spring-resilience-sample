@@ -1,0 +1,19 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  info:
+    env:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+server:
+    port: 8081
+logging:
+    level:
+        group:
+          msg:
+            playground:
+              resilience: DEBUG

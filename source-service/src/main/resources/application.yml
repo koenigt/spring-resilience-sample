@@ -1,0 +1,70 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  info:
+    env:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+logging:
+  level:
+    group:
+      msg:
+        playground:
+          resilience: DEBUG
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        waitDurationInOpenState: 5000
+        failureRateThreshold: 25
+        eventConsumerBufferSize: 10
+        registerHealthIndicator: true
+      someShared:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: TIME_BASED
+        minimumNumberOfCalls: 20
+        waitDurationInOpenState: 50s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+    instances:
+      backendA:
+        baseConfig: default
+        waitDurationInOpenState: 5000
+      backendB:
+        baseConfig: someShared
+  retry:
+    configs:
+      default:
+        maxAttempts: 5
+        waitDuration: 50ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 3
+    instances:
+      backendA:
+        base-config: default
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - org.springframework.web.reactive.function.client.WebClientResponseException
+      backendB:
+        maxAttempts: 3
+        waitDuration: 10s
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+  timelimiter:
+    instances:
+      backendA:
+        timeoutDuration: 500ms
+        cancel-running-future: true
